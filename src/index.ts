@@ -45,6 +45,7 @@ for (const [oldClass, newClass] of pairs) {
 
 const total = Object.values(stats).reduce((total, num) => total += num, 0)
 setOutput('totalChanges', total)
+setOutput('changed', total > 0)
 
 if (doDebug) {
     debug(`${total} changes`)

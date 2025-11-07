@@ -3,7 +3,7 @@
 Add a step like this to your workflow:
 
 ```yml
-- uses: metro420yt/class-update@v1-rc
+- uses: metro420yt/class-update@v1
   with:
     # folder that has your theme files
     # Default: themes
@@ -29,8 +29,7 @@ The action provides these outputs:
 
 ## Examples
 <details>
-
-<summary><h3>When <a href="https://raw.githubusercontent.com/SyndiShanX/Update-Classes/main/Changes.txt">SyndiShanX's Changes.txt</a> updates</h3></summary>
+<summary><h3>Webhook Trigger</h3></summary>
 
 > <a href="https://github.com/Metro420yt/Discord-comfy/blob/master/.github/workflows/classUpdate.yml" style="color: #919894">🔗 this is a workflow i use for a fork</a>
 
@@ -55,13 +54,13 @@ jobs:
           ext: scss
 
       - uses: gha-utilities/sass-build@v0.6.0 #compile scss files
-        if: ${{steps.update.outputs.totalChanges > 0}} #skip if no class changes
+        if: ${{steps.update.outputs.changed}} #skip if no class changes
         with:
           source: ./app.scss
           destination: ./betterdiscord/main.css
           outputStyle: expanded
       - uses: EndBug/add-and-commit@v9
-        if: ${{steps.update.outputs.totalChanges > 0}} #skip if no class changes
+        if: ${{steps.update.outputs.changed}} #skip if no class changes
         with:
           default_author: github_actions
           message: "chore: update classes"
@@ -69,13 +68,12 @@ jobs:
 ```
 
 
-im using [make.com](https://make.com) since they have a free tier, but this can be without them if needed
+This example runs when [SyndiShanX's Changes.txt](https://raw.githubusercontent.com/SyndiShanX/Update-Classes/main/Changes.txt) updates, but you can ignore the first step if using a different trigger
+
+im using [make.com](https://make.com) since they have a free tier and for demonstration purposes
 
 [make.com blueprint](https://gist.github.com/Metro420yt/a3cc2687adb2313966c2f339bd43d246#file-make-blueprint-json)
 > make sure to set up a schedule, i wouldnt try and make it run more than once per hour to stay under the 1000 operations/month
-</details>
-
-<br>
 
 
 - using an rss feed parser, have it check [this feed](https://github.com/SyndiShanX/Update-Classes/commits/main/Changes.txt.atom) for new items (commits)
@@ -87,6 +85,12 @@ im using [make.com](https://make.com) since they have a free tier, but this can 
   - body:
     - `{"event_type": "<YOUR_DISPATCH_ID>"}`
 
+</details>
+
+<!-- <details>
+<summary><h3>CRON Job</h3></summary>  -->
+<!-- TODO -->
+<!-- </details> -->
 
 
 ---

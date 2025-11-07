@@ -16,6 +16,8 @@ inputs:
     default: https://raw.githubusercontent.com/SyndiShanX/Update-Classes/main/Changes.txt
 
 outputs:
+  changed:
+    description: if any files have changed
   totalChanges:
     description: the total number of classes that were replaced
     
