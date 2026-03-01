@@ -45,7 +45,7 @@ jobs:
         run: |
           FAST_MEAN=$(node -p "(require('./results.json').results[0].mean * 1000).toFixed(1)")
           SLOW_MEAN=$(node -p "(require('./results.json').results[1].mean * 1000).toFixed(1)")
-          SPEEDUP=$(node -p "(require('./results.json').results[1].mean / require('./results.json').results[0].mean).toFixed(2)")
+          SPEEDUP=$(node -p "Math.round(require('./results.json').results[1].mean / require('./results.json').results[0].mean)")
 
           sed -i '/## Performance/,$d' README.md
 
@@ -75,5 +75,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add README.md
-          git commit -m "docs: update benchmark results to ${SPEEDUP}x speedup" || echo "No changes to commit"
+          git commit -m "docs: update benchmark results" || echo "No changes to commit"
           git push
