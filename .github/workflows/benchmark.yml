@@ -2,6 +2,11 @@ name: Benchmark
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "0 0 1 * *"
+
+permissions:
+  contents: write
 
 jobs:
   benchmark:
@@ -23,16 +28,49 @@ jobs:
       - name: Download non-forked version and changes
         run: |
           mkdir -p old_version
-          mkdir -p test_files
-          curl -L https://raw.githubusercontent.com/Metro420yt/class-update/refs/heads/master/dist/index.js -o old_version/index.js
-          curl -L https://raw.githubusercontent.com/SyndiShanX/Update-Classes/main/Changes.txt -o test_files/Changes.txt
-          cp benchmark/Materialistic.css test_files/theme.css
+          mkdir -p benchmark
+          curl -L https://raw.githubusercontent.com/Metro420yt/class-update/refs/heads/master/dist/index.js -o benchmark/index.js
+          curl -L https://raw.githubusercontent.com/SyndiShanX/Update-Classes/main/Changes.txt -o benchmark/Changes.txt
 
       - name: Install Hyperfine
         run: sudo apt-get install -y hyperfine
 
       - name: Run Real World Benchmark
         run: |
-          hyperfine --warmup 3 --ignore-failure \
-            "INPUT_FOLDER=test_files INPUT_DIFF=test_files/Changes.txt INPUT_EXT=css node dist/index.js" \
-            "INPUT_FOLDER=test_files INPUT_DIFF=test_files/Changes.txt INPUT_EXT=css node old_version/index.js"
+          hyperfine --warmup 3 --ignore-failure --export-markdown results.md --export-json results.json \
+            "INPUT_FOLDER=benchmark INPUT_DIFF=benchmark/Changes.txt INPUT_EXT=css node dist/index.js" \
+            "INPUT_FOLDER=benchmark INPUT_DIFF=benchmark/Changes.txt INPUT_EXT=css node benchmark/index.js"
+
+      - name: Update README
+        run: |
+          FAST_MEAN=$(node -p "Math.round(require('./results.json').results[0].mean * 1000 * 10) / 10")
+          SLOW_MEAN=$(node -p "Math.round(require('./results.json').results[1].mean * 1000 * 10) / 10")
+          SPEEDUP=$(node -p "(require('./results.json').results[1].mean / require('./results.json').results[0].mean).toFixed(2)")
+
+          sed -i '/## Performance/,$d' README.md
+
+          {
+            echo "## Performance"
+            echo ""
+            echo "Benchmark conducted against Materialistic.css using the official Changes.txt dataset."
+            echo ""
+            cat results.md
+            echo ""
+            echo "This version processed the theme in ${FAST_MEAN}ms compared to ${SLOW_MEAN}ms for the original, making it approximately ${SPEEDUP}x faster."
+            echo ""
+            echo "## Migrating"
+            echo ""
+            echo "Change the step to:"
+            echo ""
+            echo "\`\`\`yml"
+            echo "- uses: flowerey/class-update@main"
+            echo "\`\`\`"
+          } >> README.md
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "docs: update benchmark results to ${SPEEDUP}x speedup" || echo "No changes to commit"
+          git push
