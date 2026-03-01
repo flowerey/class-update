@@ -1,3 +1,7 @@
+# class-update
+
+A CSS class updater for Discord themes.
+
 ## Inputs
 
 Add a step like this to your workflow:
@@ -18,7 +22,6 @@ Add a step like this to your workflow:
     diff: './changes.txt'
 ```
 
-
 ## Outputs
 
 The action provides these outputs:
@@ -28,6 +31,7 @@ The action provides these outputs:
 > For more info on how to use outputs, see ["Context and expression syntax"](https://docs.github.com/en/free-pro-team@latest/actions/reference/context-and-expression-syntax-for-github-actions).
 
 ## Examples
+
 <details>
 <summary><h3>Webhook Trigger</h3></summary>
 
@@ -67,14 +71,12 @@ jobs:
           fetch: true
 ```
 
-
 This example runs when [SyndiShanX's Changes.txt](https://raw.githubusercontent.com/SyndiShanX/Update-Classes/main/Changes.txt) updates, but you can ignore the first step if using a different trigger
 
 im using [make.com](https://make.com) since they have a free tier and for demonstration purposes
 
 [make.com blueprint](https://gist.github.com/Metro420yt/a3cc2687adb2313966c2f339bd43d246#file-make-blueprint-json)
 > make sure to set up a schedule, i wouldnt try and make it run more than once per hour to stay under the 1000 operations/month
-
 
 - using an rss feed parser, have it check [this feed](https://github.com/SyndiShanX/Update-Classes/commits/main/Changes.txt.atom) for new items (commits)
 - when a new commit is made, send a POST request to `https://api.github.com/repos/<YOUR_REPO>/dispatches` with this info ([docs](https://docs.github.com/en/webhooks/webhook-events-and-payloads#repository_dispatch))
@@ -92,9 +94,10 @@ im using [make.com](https://make.com) since they have a free tier and for demons
 <!-- TODO -->
 <!-- </details> -->
 
-
 ---
+
 ## Credits
+>
 >- inspired by [ClassUpdate from Saltssaumure](https://github.com/Saltssaumure/ClassUpdate)
 >- changelist maintained by [SyndiShanX](https://github.com/SyndiShanX) ([repo](https://github.com/SyndiShanX/Update-Classes))
 >- class name history maintained by [itmesarah](https://github.com/itmesarah) ([repo](itmesarah))

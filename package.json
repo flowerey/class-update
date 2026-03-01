@@ -1,7 +1,7 @@
 {
   "name": "discord-class-update",
   "version": "1.0.0",
-  "description": "automatically update your discord classes",
+  "description": "Automatically update your Discord theme classes",
   "main": "prod/index.js",
   "type": "module",
   "author": "metro420",
@@ -12,12 +12,12 @@
     "build:w": "ncc build src/index.ts --watch"
   },
   "dependencies": {
-    "@actions/core": "^1.11.1"
+    "@actions/core": "^3.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.17.52",
-    "@vercel/ncc": "^0.38.3",
-    "nodemon": "^3.1.10",
-    "typescript": "^5.8.3"
+    "@types/node": "^25.3.3",
+    "@vercel/ncc": "^0.38.4",
+    "nodemon": "^3.1.14",
+    "typescript": "^5.9.3"
   }
 }

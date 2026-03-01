@@ -1,23 +1,16 @@
 {
-    "compilerOptions": {
-        "target": "ES2023",
-        "strict": true,
-        "module": "Node16",
-        "removeComments": true,
-        "esModuleInterop": true,
-        "outDir": "./prod",
-        "rootDir": "./src",
-        "moduleResolution": "Node16",
-        "lib": [
-            "ES2023",
-            "DOM"
-        ],
-        "baseUrl": "./src",
-        "skipLibCheck": true,
-    },
-    "exclude": [
-        "./node_modules",
-        "./prod",
-        "./src/* copy*"
-    ],
+  "compilerOptions": {
+    "target": "ES2023",
+    "strict": true,
+    "module": "Node16",
+    "removeComments": true,
+    "esModuleInterop": true,
+    "outDir": "./prod",
+    "rootDir": "./src",
+    "moduleResolution": "Node16",
+    "lib": ["ES2023", "DOM"],
+    "baseUrl": "./src",
+    "skipLibCheck": true
+  },
+  "exclude": ["./node_modules", "./prod", "./src/* copy*"]
 }
