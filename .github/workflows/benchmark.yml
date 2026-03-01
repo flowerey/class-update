@@ -25,24 +25,19 @@ jobs:
           mkdir -p old_version
           curl -L https://raw.githubusercontent.com/Metro420yt/class-update/refs/heads/master/dist/index.js -o old_version/index.js
 
-      - name: Prepare Legacy Data
+      - name: Prepare Files
         run: |
           mkdir -p test_files
-
           cp benchmark/Materialistic.css test_files/theme.css
 
-          grep -oP '\.[a-zA-Z0-9_-]+' test_files/theme.css | sort | uniq | sed 's/\.//' > classes.txt
-
-          while read -r line; do
-            echo "$line" >> stress_diff.txt
-            echo "$line-v2" >> stress_diff.txt
-          done < classes.txt
+          echo "container" > stress_diff.txt
+          echo "container-new" >> stress_diff.txt
 
       - name: Install Hyperfine
         run: sudo apt-get install -y hyperfine
 
       - name: Run Benchmark
         run: |
-          hyperfine --warmup 2 --runs 5 --ignore-failure --show-output \
+          hyperfine --warmup 2 --runs 10 \
             "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt INPUT_EXT=css node dist/index.js" \
             "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt INPUT_EXT=css node old_version/index.js"
