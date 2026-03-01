@@ -1,16 +1,19 @@
 {
   "compilerOptions": {
     "target": "ES2023",
-    "strict": true,
-    "module": "Node16",
-    "removeComments": true,
-    "esModuleInterop": true,
-    "outDir": "./prod",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2023"],
     "rootDir": "./src",
-    "moduleResolution": "Node16",
-    "lib": ["ES2023", "DOM"],
-    "baseUrl": "./src",
-    "skipLibCheck": true
+    "outDir": "./prod",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "removeComments": true,
+    "resolveJsonModule": true,
+    "verbatimModuleSyntax": true,
+    "baseUrl": "./src"
   },
-  "exclude": ["./node_modules", "./prod", "./src/* copy*"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "prod", "**/* copy*"]
 }

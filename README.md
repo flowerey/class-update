@@ -1,6 +1,6 @@
 # class-update
 
-A fork of class-update that updates dependencies, nothing else.
+A fork of class-update that aims to update dependencies and be faster.
 
 ## Migrating
 
