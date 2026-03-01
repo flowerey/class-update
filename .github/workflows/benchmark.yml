@@ -17,7 +17,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build New Version
+      - name: Build forked version
         run: npm run build
 
       - name: Download non-forked version
@@ -44,5 +44,5 @@ jobs:
       - name: Run Benchmark
         run: |
           hyperfine --warmup 3 \
-            --name "New" "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt node dist/index.js" \
-            --name "Old" "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt node old_version/index.js"
+            "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt node dist/index.js" \
+            "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt node old_version/index.js"
