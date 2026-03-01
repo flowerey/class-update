@@ -25,14 +25,14 @@ jobs:
           mkdir -p old_version
           curl -L https://raw.githubusercontent.com/Metro420yt/class-update/refs/heads/master/dist/index.js -o old_version/index.js
 
-      - name: Create test data
+      - name: Create test data (Light Version)
         run: |
           mkdir -p test_files
-          for i in {1..100}; do
-            for j in {1..50}; do
-              echo ".old-class-$j { color: blue; }" >> test_files/theme-$i.css
-            done
+          for j in {1..1000}; do
+            CLASS_NUM=$(( (j % 100) + 1 ))
+            echo ".old-class-$CLASS_NUM { color: blue; border: 1px solid red; }" >> test_files/theme-large.css
           done
+
           for i in {1..100}; do
             echo "old-class-$i" >> stress_diff.txt
             echo "new-class-$i" >> stress_diff.txt
@@ -43,8 +43,6 @@ jobs:
 
       - name: Run Benchmark
         run: |
-          # We remove --name and use the simple "cmd1" "cmd2" syntax
-          # We also add the 'i' flag to ignore non-zero exits so we can see the data
-          hyperfine --warmup 3 --ignore-failure \
+          hyperfine --warmup 2 \
             "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt INPUT_EXT=css node dist/index.js" \
             "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt INPUT_EXT=css node old_version/index.js"
