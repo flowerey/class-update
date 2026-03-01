@@ -32,7 +32,7 @@ jobs:
           curl -L https://raw.githubusercontent.com/Metro420yt/class-update/refs/heads/master/dist/index.js -o benchmark/index.js
           curl -L https://raw.githubusercontent.com/SyndiShanX/Update-Classes/main/Changes.txt -o benchmark/Changes.txt
 
-      - name: Verify Functional Parity
+      - name: Verify functional parity
         run: |
           mkdir -p verify/fork verify/orig
           cp benchmark/Materialistic.css verify/fork/theme.css
@@ -41,7 +41,8 @@ jobs:
           INPUT_FOLDER=verify/fork INPUT_DIFF=benchmark/Changes.txt INPUT_EXT=css node dist/index.js
           INPUT_FOLDER=verify/orig INPUT_DIFF=benchmark/Changes.txt INPUT_EXT=css node benchmark/index.js
 
-          echo "### Functional Comparison"
+          echo "Functional Comparison"
+          echo "====================="
           if diff -q verify/fork/theme.css verify/orig/theme.css; then
             echo "Outputs are identical."
           else
@@ -52,7 +53,7 @@ jobs:
       - name: Install Hyperfine
         run: sudo apt-get install -y hyperfine
 
-      - name: Run Real World Benchmark
+      - name: Run benchmark
         run: |
           hyperfine --warmup 3 --ignore-failure --export-markdown results.md --export-json results.json \
             "INPUT_FOLDER=benchmark INPUT_DIFF=benchmark/Changes.txt INPUT_EXT=css node dist/index.js" \
@@ -87,7 +88,7 @@ jobs:
             echo "\`\`\`"
           } >> README.md
 
-      - name: Commit and Push changes
+      - name: Commit and push changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
