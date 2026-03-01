@@ -54,7 +54,7 @@ jobs:
 
       - name: Run benchmark
         run: |
-          hyperfine --warmup 3 --ignore-failure --export-markdown results.md --export-json results.json \
+          hyperfine --warmup 3 --export-json results.json \
             "INPUT_FOLDER=benchmark INPUT_DIFF=benchmark/Changes.txt INPUT_EXT=css node dist/index.js" \
             "INPUT_FOLDER=benchmark INPUT_DIFF=benchmark/Changes.txt INPUT_EXT=css node benchmark/index.js"
 
