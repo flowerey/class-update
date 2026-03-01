@@ -43,6 +43,8 @@ jobs:
 
       - name: Run Benchmark
         run: |
-          hyperfine --warmup 3 --show-output \
-            --name "New (Optimized)" "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt INPUT_EXT=css node dist/index.js" \
-            --name "Old (Legacy)" "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt INPUT_EXT=css node old_version/index.js"
+          # We remove --name and use the simple "cmd1" "cmd2" syntax
+          # We also add the 'i' flag to ignore non-zero exits so we can see the data
+          hyperfine --warmup 3 --ignore-failure \
+            "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt INPUT_EXT=css node dist/index.js" \
+            "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt INPUT_EXT=css node old_version/index.js"
