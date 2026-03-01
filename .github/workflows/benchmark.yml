@@ -43,6 +43,6 @@ jobs:
 
       - name: Run Benchmark
         run: |
-          hyperfine --warmup 2 --runs 5 --ignore-failure \
-            --name "New (Optimized Single-Pass)" "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt INPUT_EXT=css node dist/index.js" \
-            --name "Old (Legacy Nested-Loops)" "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt INPUT_EXT=css node old_version/index.js"
+          hyperfine --warmup 2 --runs 5 --ignore-failure --show-output \
+            "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt INPUT_EXT=css node dist/index.js" \
+            "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt INPUT_EXT=css node old_version/index.js"
