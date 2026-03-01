@@ -6,8 +6,8 @@ import {
   isDebug,
   setOutput,
 } from "@actions/core";
-import { existsSync, readdirSync } from "fs";
-import { readFile, writeFile } from "fs/promises";
+import { existsSync } from "fs";
+import { readFile, writeFile, readdir } from "fs/promises";
 import { resolve, join } from "path";
 
 const doDebug = isDebug();
@@ -36,57 +36,68 @@ if (pairs.length === 0) {
 }
 
 const replacementMap = new Map(pairs);
+
 const pattern = new RegExp(
-  Array.from(replacementMap.keys())
+  `\\b(${Array.from(replacementMap.keys())
     .map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-    .join("|"),
+    .join("|")})\\b`,
   "g",
 );
 
-const filePaths = (readdirSync(targetFolder, { recursive: true }) as string[])
+const files = await readdir(targetFolder, { recursive: true });
+const filePaths = files
   .filter((f) => f.endsWith(options.ext))
   .map((f) => join(targetFolder, f));
 
-let totalChanges = 0;
-const stats: Record<string, number> = {};
-
-await Promise.all(
+const results = await Promise.all(
   filePaths.map(async (fullPath) => {
     const content = await readFile(fullPath, "utf8");
     let fileCount = 0;
 
-    const result = content.replaceAll(pattern, (matched) => {
+    const result = content.replace(pattern, (matched) => {
       fileCount++;
       return replacementMap.get(matched)!;
     });
 
     if (fileCount > 0) {
-      const relativeName = fullPath.replace(targetFolder + "/", "");
-      stats[relativeName] = fileCount;
-      totalChanges += fileCount;
       await writeFile(fullPath, result);
+      const relativeName = fullPath.replace(targetFolder + "/", "");
       if (doDebug) debug(`Updated ${relativeName}: ${fileCount} changes`);
+      return { relativeName, count: fileCount };
     }
+    return { count: 0 };
   }),
 );
+
+const totalChanges = results.reduce((sum, res) => sum + res.count, 0);
 
 setOutput("totalChanges", totalChanges);
 setOutput("changed", totalChanges > 0);
 
 async function getPairs(diffSource: string): Promise<Array<[string, string]>> {
   let rawData: string;
-  if (diffSource.startsWith("http")) {
-    const resp = await fetch(diffSource);
-    if (!resp.ok) {
-      error(`Failed to fetch diff: ${resp.status}`);
-      process.exit(ExitCode.Failure);
+  try {
+    if (diffSource.startsWith("http")) {
+      const resp = await fetch(diffSource);
+      if (!resp.ok) {
+        error(`Failed to fetch diff: ${resp.status}`);
+        process.exit(ExitCode.Failure);
+      }
+      rawData = await resp.text();
+    } else {
+      rawData = await readFile(resolve(process.cwd(), diffSource), "utf8");
     }
-    rawData = await resp.text();
-  } else {
-    rawData = await readFile(resolve(process.cwd(), diffSource), "utf8");
+  } catch (err) {
+    error(
+      `Error reading diff source: ${err instanceof Error ? err.message : err}`,
+    );
+    process.exit(ExitCode.Failure);
   }
 
-  const lines = rawData.split(/\r?\n/).filter((line) => line.trim() !== "");
+  const lines = rawData
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
   const pairs: Array<[string, string]> = [];
 
   for (let i = 0; i < lines.length; i += 2) {
