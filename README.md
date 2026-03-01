@@ -1,14 +1,7 @@
 # class-update
 
-A fork of class-update that aims to update dependencies and be faster.
+A fork of class-update that is faster.
 
-## Migrating
-
-Change the step to:
-
-```yml
-- uses: flowerey/class-update@main
-```
 ## Performance
 
 Benchmark conducted against `Materialistic.css` using the official `Changes.txt` dataset.
