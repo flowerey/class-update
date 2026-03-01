@@ -1,0 +1,48 @@
+name: Benchmark
+
+on:
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build New Version
+        run: npm run build
+
+      - name: Download non-forked version
+        run: |
+          mkdir -p old_version
+          curl -L https://raw.githubusercontent.com/Metro420yt/class-update/main/dist/index.js -o old_version/index.js
+
+      - name: Create test data
+        run: |
+          mkdir -p test_files
+          for i in {1..100}; do
+            for j in {1..50}; do
+              echo ".old-class-$j { color: blue; }" >> test_files/theme-$i.css
+            done
+          done
+          for i in {1..100}; do
+            echo "old-class-$i" >> stress_diff.txt
+            echo "new-class-$i" >> stress_diff.txt
+          done
+
+      - name: Install Hyperfine
+        run: sudo apt-get install -y hyperfine
+
+      - name: Run Benchmark
+        run: |
+          hyperfine --warmup 3 \
+            --name "New" "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt node dist/index.js" \
+            --name "Old" "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt node old_version/index.js"
