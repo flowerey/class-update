@@ -4,8 +4,8 @@
   "description": "Automatically update your Discord theme classes",
   "main": "prod/index.js",
   "type": "module",
-  "author": "Metro420yt",
-  "license": "ISC",
+  "author": "flowerey",
+  "license": "MIT",
   "scripts": {
     "dev": "nodemon -e .ts --exec \"tsc\"",
     "build": "ncc build src/index.ts --minify",
