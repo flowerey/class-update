@@ -25,24 +25,24 @@ jobs:
           mkdir -p old_version
           curl -L https://raw.githubusercontent.com/Metro420yt/class-update/refs/heads/master/dist/index.js -o old_version/index.js
 
-      - name: Create test data (Light Version)
+      - name: Prepare Legacy Data
         run: |
           mkdir -p test_files
-          for j in {1..1000}; do
-            CLASS_NUM=$(( (j % 100) + 1 ))
-            echo ".old-class-$CLASS_NUM { color: blue; border: 1px solid red; }" >> test_files/theme-large.css
-          done
 
-          for i in {1..100}; do
-            echo "old-class-$i" >> stress_diff.txt
-            echo "new-class-$i" >> stress_diff.txt
-          done
+          cp benchmark/Materialistic.css test_files/theme.css
+
+          grep -oP '\.[a-zA-Z0-9_-]+' test_files/theme.css | sort | uniq | sed 's/\.//' > classes.txt
+
+          while read -r line; do
+            echo "$line" >> stress_diff.txt
+            echo "$line-v2" >> stress_diff.txt
+          done < classes.txt
 
       - name: Install Hyperfine
         run: sudo apt-get install -y hyperfine
 
       - name: Run Benchmark
         run: |
-          hyperfine --warmup 2 --runs 5 --ignore-failure --show-output \
-            "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt INPUT_EXT=css node dist/index.js" \
-            "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt INPUT_EXT=css node old_version/index.js"
+          hyperfine --warmup 2 --runs 5 --ignore-failure \
+            --name "New (Optimized Single-Pass)" "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt INPUT_EXT=css node dist/index.js" \
+            --name "Old (Legacy Nested-Loops)" "INPUT_FOLDER=test_files INPUT_DIFF=stress_diff.txt INPUT_EXT=css node old_version/index.js"
