@@ -23,7 +23,7 @@ jobs:
       - name: Download non-forked version
         run: |
           mkdir -p old_version
-          curl -L https://raw.githubusercontent.com/Metro420yt/class-update/main/dist/index.js -o old_version/index.js
+          curl -L https://raw.githubusercontent.com/Metro420yt/class-update/refs/heads/master/dist/index.js -o old_version/index.js
 
       - name: Create test data
         run: |
