@@ -6,12 +6,12 @@ A fork of class-update that is faster.
 
 Benchmark conducted against `Materialistic.css` using the official `Changes.txt` dataset.
 
-| Version | Execution Time (Mean) |
+| Version | Execution Time |
 | :--- | :--- |
-| Optimized (Fork) | 407.8 ms |
-| Original (Legacy) | 1199.0 ms |
+| Fork | 401.5 ms |
+| Non-forked | 1184.7 ms |
 
-This version processed the theme in **407.8ms** compared to **1199.0ms** for the original, making it approximately **2.94x faster**.
+This version processed the theme in **401.5ms** compared to **1184.7ms** for the original, making it approximately **2.95x faster**.
 
 ## Migrating
 
