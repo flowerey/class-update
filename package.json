@@ -2,7 +2,7 @@
   "name": "discord-class-update",
   "version": "1.0.0",
   "description": "Automatically update your Discord theme classes",
-  "main": "prod/index.js",
+  "main": "dist/index.js",
   "type": "module",
   "author": "flowerey",
   "license": "MIT",
