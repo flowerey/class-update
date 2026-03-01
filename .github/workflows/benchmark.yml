@@ -28,26 +28,25 @@ jobs:
       - name: Download non-forked version and changes
         run: |
           mkdir -p old_version
-          mkdir -p benchmark
           curl -L https://raw.githubusercontent.com/Metro420yt/class-update/refs/heads/master/dist/index.js -o benchmark/index.js
           curl -L https://raw.githubusercontent.com/SyndiShanX/Update-Classes/main/Changes.txt -o benchmark/Changes.txt
 
       - name: Verify functional parity
         run: |
-          mkdir -p verify/fork verify/orig
-          cp benchmark/Materialistic.css verify/fork/theme.css
-          cp benchmark/Materialistic.css verify/orig/theme.css
+          mkdir -p benchmark/fork benchmark/orig
+          cp benchmark/Materialistic.css benchmark/fork/theme.css
+          cp benchmark/Materialistic.css benchmark/orig/theme.css
 
-          INPUT_FOLDER=verify/fork INPUT_DIFF=benchmark/Changes.txt INPUT_EXT=css node dist/index.js
-          INPUT_FOLDER=verify/orig INPUT_DIFF=benchmark/Changes.txt INPUT_EXT=css node benchmark/index.js
+          INPUT_FOLDER=benchmark/fork INPUT_DIFF=benchmark/Changes.txt INPUT_EXT=css node dist/index.js
+          INPUT_FOLDER=benchmark/orig INPUT_DIFF=benchmark/Changes.txt INPUT_EXT=css node benchmark/index.js
 
           echo "Functional Comparison"
           echo "====================="
-          if diff -q verify/fork/theme.css verify/orig/theme.css; then
+          if diff -q benchmark/fork/theme.css benchmark/orig/theme.css; then
             echo "Outputs are identical."
           else
             echo "Outputs differ. Differences:"
-            diff -u verify/orig/theme.css verify/fork/theme.css | head -n 20 || true
+            diff -u benchmark/orig/theme.css benchmark/fork/theme.css | head -n 20 || true
           fi
 
       - name: Install Hyperfine
