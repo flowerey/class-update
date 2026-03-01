@@ -4,7 +4,7 @@
   "description": "Automatically update your Discord theme classes",
   "main": "prod/index.js",
   "type": "module",
-  "author": "metro420",
+  "author": "Metro420yt",
   "license": "ISC",
   "scripts": {
     "dev": "nodemon -e .ts --exec \"tsc\"",

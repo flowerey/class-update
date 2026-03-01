@@ -7,98 +7,98 @@ A CSS class updater for Discord themes.
 Add a step like this to your workflow:
 
 ```yml
-- uses: metro420yt/class-update@v1
+- uses: Metro420yt/class-update@master
   with:
-    # folder that has your theme files
+    # Folder that contains your theme files
     # Default: themes
-    folder: 'src'
+    folder: "src"
 
-    # file extension to target
+    # File extension to target
     # Default: css
     ext: scss
 
-    # url or relative path to a file containing an old&new pair of class names
+    # URL or relative path to a file containing an old & new pair of class names
     # Default: https://raw.githubusercontent.com/SyndiShanX/Update-Classes/main/Changes.txt
-    diff: './changes.txt'
+    diff: "./changes.txt"
 ```
 
 ## Outputs
 
 The action provides these outputs:
 
-- `totalChanges`: the total number of classes that were replaced
+- `totalChanges`: The total number of classes that were replaced.
 
-> For more info on how to use outputs, see ["Context and expression syntax"](https://docs.github.com/en/free-pro-team@latest/actions/reference/context-and-expression-syntax-for-github-actions).
+> For more info on how to use outputs, see ["Context and expression syntax"](https://docs.github.com/en/actions/reference/workflows-and-actions/contexts).
 
 ## Examples
 
 <details>
 <summary><h3>Webhook Trigger</h3></summary>
 
-> <a href="https://github.com/Metro420yt/Discord-comfy/blob/master/.github/workflows/classUpdate.yml" style="color: #919894">🔗 this is a workflow i use for a fork</a>
+> <a href="[https://github.com/Metro420yt/Discord-comfy/blob/master/.github/workflows/classUpdate.yml](https://github.com/Metro420yt/Discord-comfy/blob/master/.github/workflows/classUpdate.yml)" style="color: #919894">🔗 This is a workflow I use for a fork</a>
 
 ```yml
 name: Update Classes
 
 on:
-  workflow_dispatch: # manually trigger
-  repository_dispatch: # trigger by webhook (example below)
-    types: [update_class] # id for webhook to target
+  workflow_dispatch: # Manually trigger
+  repository_dispatch: # Trigger by webhook (example below)
+    types: [update_class] # ID for webhook to target
 
 jobs:
   classUpdate:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-      - id: update
-        uses: metro420yt/class-update@v1-rc
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Update Classes
+        id: update
+        uses: Metro420yt/class-update@master
         with:
           folder: stuff
           ext: scss
 
-      - uses: gha-utilities/sass-build@v0.6.0 #compile scss files
-        if: ${{steps.update.outputs.changed}} #skip if no class changes
+      - name: Build SCSS
+        uses: gha-utilities/sass-build@v0.6.1 # Compile SCSS files
+        if: ${{ steps.update.outputs.totalChanges > 0 }} # Skip if no class changes
         with:
           source: ./app.scss
           destination: ./betterdiscord/main.css
           outputStyle: expanded
-      - uses: EndBug/add-and-commit@v9
-        if: ${{steps.update.outputs.changed}} #skip if no class changes
+
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        if: ${{ steps.update.outputs.totalChanges > 0 }} # Skip if no class changes
         with:
           default_author: github_actions
           message: "chore: update classes"
           fetch: true
 ```
 
-This example runs when [SyndiShanX's Changes.txt](https://raw.githubusercontent.com/SyndiShanX/Update-Classes/main/Changes.txt) updates, but you can ignore the first step if using a different trigger
+This example runs when [SyndiShanX's Changes.txt](https://raw.githubusercontent.com/SyndiShanX/Update-Classes/main/Changes.txt) updates, but you can ignore the first step if using a different trigger.
 
-im using [make.com](https://make.com) since they have a free tier and for demonstration purposes
+I'm using [make.com](https://www.make.com/en) for demonstration purposes since they have a free tier.
 
-[make.com blueprint](https://gist.github.com/Metro420yt/a3cc2687adb2313966c2f339bd43d246#file-make-blueprint-json)
-> make sure to set up a schedule, i wouldnt try and make it run more than once per hour to stay under the 1000 operations/month
+[Make.com blueprint](https://gist.github.com/Metro420yt/a3cc2687adb2313966c2f339bd43d246#file-make-blueprint-json)
 
-- using an rss feed parser, have it check [this feed](https://github.com/SyndiShanX/Update-Classes/commits/main/Changes.txt.atom) for new items (commits)
-- when a new commit is made, send a POST request to `https://api.github.com/repos/<YOUR_REPO>/dispatches` with this info ([docs](https://docs.github.com/en/webhooks/webhook-events-and-payloads#repository_dispatch))
-  - headers:
-    - Accept: application/vnd.github+json <sub>(might not need, idk)</sub>
-    - Content-Type: application/json
-    - Authorization: `Bearer <YOUR_TOKEN>` (see [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#about-personal-access-tokens))
-  - body:
-    - `{"event_type": "<YOUR_DISPATCH_ID>"}`
+> Make sure to set up a schedule; I wouldn't try to make it run more than once per hour to stay under the 1,000 operations/month limit.
+
+- Using an **RSS feed parser**, have it check [this feed](https://github.com/SyndiShanX/Update-Classes/commits/main/Changes.txt.atom) for new items (commits).
+- When a new commit is made, send a **POST** request to `https://api.github.com/repos/<YOUR_REPO>/dispatches` with this info ([docs](https://docs.github.com/en/webhooks/webhook-events-and-payloads#repository_dispatch)):
+- **Headers**:
+- `Accept`: `application/vnd.github+json` (Might not be needed, but recommended)
+- `Content-Type`: `application/json`
+- `Authorization`: `Bearer <YOUR_TOKEN>` (See [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#about-personal-access-tokens))
+- **Body**:
+- `{"event_type": "<YOUR_DISPATCH_ID>"}`
 
 </details>
 
-<!-- <details>
-<summary><h3>CRON Job</h3></summary>  -->
-<!-- TODO -->
-<!-- </details> -->
-
----
-
 ## Credits
->
->- inspired by [ClassUpdate from Saltssaumure](https://github.com/Saltssaumure/ClassUpdate)
->- changelist maintained by [SyndiShanX](https://github.com/SyndiShanX) ([repo](https://github.com/SyndiShanX/Update-Classes))
->- class name history maintained by [itmesarah](https://github.com/itmesarah) ([repo](itmesarah))
->- README.md based on [EndBug/add-and-commit](https://github.com/EndBug/add-and-commit/blob/v9/README.md)
+
+- Inspired by [ClassUpdate from Saltssaumure](https://github.com/Saltssaumure/ClassUpdate)
+- Changelist maintained by [SyndiShanX](https://github.com/SyndiShanX) ([repo](https://github.com/SyndiShanX/Update-Classes))
+- Class name history maintained by [itmesarah](https://github.com/itmesarah) ([repo](hhttps://github.com/itmesarah/DiscordClasses))
+- README based on [EndBug/add-and-commit](https://github.com/EndBug/add-and-commit/blob/main/README.md)
