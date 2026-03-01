@@ -43,8 +43,8 @@ jobs:
 
       - name: Update README
         run: |
-          FAST_MEAN=$(node -p "Math.round(require('./results.json').results[0].mean * 1000 * 10) / 10")
-          SLOW_MEAN=$(node -p "Math.round(require('./results.json').results[1].mean * 1000 * 10) / 10")
+          FAST_MEAN=$(node -p "(require('./results.json').results[0].mean * 1000).toFixed(1)")
+          SLOW_MEAN=$(node -p "(require('./results.json').results[1].mean * 1000).toFixed(1)")
           SPEEDUP=$(node -p "(require('./results.json').results[1].mean / require('./results.json').results[0].mean).toFixed(2)")
 
           sed -i '/## Performance/,$d' README.md
@@ -52,11 +52,14 @@ jobs:
           {
             echo "## Performance"
             echo ""
-            echo "Benchmark conducted against Materialistic.css using the official Changes.txt dataset."
+            echo "Benchmark conducted against \`Materialistic.css\` using the official \`Changes.txt\` dataset."
             echo ""
-            cat results.md
+            echo "| Version | Execution Time (Mean) |"
+            echo "| :--- | :--- |"
+            echo "| Optimized (Fork) | ${FAST_MEAN} ms |"
+            echo "| Original (Legacy) | ${SLOW_MEAN} ms |"
             echo ""
-            echo "This version processed the theme in ${FAST_MEAN}ms compared to ${SLOW_MEAN}ms for the original, making it approximately ${SPEEDUP}x faster."
+            echo "This version processed the theme in **${FAST_MEAN}ms** compared to **${SLOW_MEAN}ms** for the original, making it approximately **${SPEEDUP}x faster**."
             echo ""
             echo "## Migrating"
             echo ""
