@@ -8,10 +8,10 @@ Benchmark conducted against `Materialistic.css` using the official `Changes.txt`
 
 | Version | Execution Time |
 | :--- | :--- |
-| Fork | 401.5 ms |
-| Non-forked | 1184.7 ms |
+| Fork | 413.0 ms |
+| Non-forked | 1198.0 ms |
 
-This version processed the theme in **401.5ms** compared to **1184.7ms** for the original, making it approximately **2.95x faster**.
+This version processed the theme in **413.0ms** compared to **1198.0ms** for the original, making it approximately **3x faster**.
 
 ## Migrating
 
