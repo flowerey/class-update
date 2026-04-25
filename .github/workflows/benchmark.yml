@@ -27,7 +27,6 @@ jobs:
 
       - name: Download non-forked version and changes
         run: |
-          mkdir -p old_version
           curl -L https://raw.githubusercontent.com/Metro420yt/class-update/refs/heads/master/dist/index.js -o benchmark/index.js
           curl -L https://raw.githubusercontent.com/SyndiShanX/Update-Classes/main/Changes.txt -o benchmark/Changes.txt
 
