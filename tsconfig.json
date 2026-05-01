@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "target": "ES2023",
+    "target": "ESNext",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "lib": ["ES2023"],
+    "lib": ["ESNext", "DOM"],
     "rootDir": "./src",
     "outDir": "./prod",
     "strict": true,
@@ -12,7 +12,8 @@
     "removeComments": true,
     "resolveJsonModule": true,
     "verbatimModuleSyntax": true,
-    "baseUrl": "./src"
+    "baseUrl": "./src",
+    "ignoreDeprecations": "6.0"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "prod", "**/* copy*"]
