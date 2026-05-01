@@ -35,26 +35,26 @@ if (pairs.length === 0) {
   process.exit(0);
 }
 
-const replacementMap = new Map(pairs);
+const replacementMap = new Map<string, string>(pairs);
 
 const pattern = new RegExp(
   `\\b(${Array.from(replacementMap.keys())
-    .map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .map((k: string) => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
     .join("|")})\\b`,
   "g",
 );
 
-const files = await readdir(targetFolder, { recursive: true });
+const files: string[] = await readdir(targetFolder, { recursive: true });
 const filePaths = files
-  .filter((f) => f.endsWith(options.ext))
-  .map((f) => join(targetFolder, f));
+  .filter((f: string) => f.endsWith(options.ext))
+  .map((f: string) => join(targetFolder, f));
 
 const results = await Promise.all(
-  filePaths.map(async (fullPath) => {
+  filePaths.map(async (fullPath: string) => {
     const content = await readFile(fullPath, "utf8");
     let fileCount = 0;
 
-    const result = content.replace(pattern, (matched) => {
+    const result = content.replace(pattern, (matched: string) => {
       fileCount++;
       return replacementMap.get(matched)!;
     });
@@ -69,13 +69,13 @@ const results = await Promise.all(
   }),
 );
 
-const totalChanges = results.reduce((sum, res) => sum + res.count, 0);
+const totalChanges = results.reduce((sum: number, res: { count: number }) => sum + res.count, 0);
 
 setOutput("totalChanges", totalChanges);
 setOutput("changed", totalChanges > 0);
 
 async function getPairs(diffSource: string): Promise<Array<[string, string]>> {
-  let rawData: string;
+  let rawData: string = "";
   try {
     if (diffSource.startsWith("http")) {
       const resp = await fetch(diffSource);
@@ -96,8 +96,9 @@ async function getPairs(diffSource: string): Promise<Array<[string, string]>> {
 
   const lines = rawData
     .split(/\r?\n/)
-    .map((l) => l.trim())
+    .map((l: string) => l.trim())
     .filter(Boolean);
+    
   const pairs: Array<[string, string]> = [];
 
   for (let i = 0; i < lines.length; i += 2) {
