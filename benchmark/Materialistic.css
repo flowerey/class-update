@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@200&display=swap");
-@import url("https://gibbu.github.io/BetterDiscord-Themes/AdjustableServerWidth/base.css");
-@import url("https://gibbu.github.io/BetterDiscord-Themes/RadialStatus/base.css");
+@import url("https://discordstyles.github.io/Slate/Serverlist.css");
+@import url("https://raw.githubusercontent.com/DiscordStyles/RadialStatus/deploy/RadialStatus.theme.css");
 
 body,
 button,
@@ -2054,8 +2054,6 @@ svg.icon-JJBzjE.lighten-2aYaaU {
   .keybind-KpFkfr {
   display: none;
 }
-
-/*top most titlebar syling - credits to ClearVision Team for the original idea and css*/
 
 .typeWindows-1za-n7 {
   height: 18px;
