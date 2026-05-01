@@ -69,7 +69,10 @@ const results = await Promise.all(
   }),
 );
 
-const totalChanges = results.reduce((sum: number, res: { count: number }) => sum + res.count, 0);
+const totalChanges = results.reduce(
+  (sum: number, res: { count: number }) => sum + res.count,
+  0,
+);
 
 setOutput("totalChanges", totalChanges);
 setOutput("changed", totalChanges > 0);
@@ -98,7 +101,7 @@ async function getPairs(diffSource: string): Promise<Array<[string, string]>> {
     .split(/\r?\n/)
     .map((l: string) => l.trim())
     .filter(Boolean);
-    
+
   const pairs: Array<[string, string]> = [];
 
   for (let i = 0; i < lines.length; i += 2) {

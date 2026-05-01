@@ -12,12 +12,12 @@
     "build:w": "ncc build src/index.ts --watch"
   },
   "dependencies": {
-    "@actions/core": "^3.0.0"
+    "@actions/core": "^3.0.1"
   },
   "devDependencies": {
-    "@types/node": "^25.3.3",
+    "@types/node": "^25.6.0",
     "@vercel/ncc": "^0.38.4",
     "nodemon": "^3.1.14",
-    "typescript": "^6.0.0"
+    "typescript": "^6.0.3"
   }
 }
