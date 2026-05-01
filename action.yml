@@ -22,5 +22,5 @@ outputs:
     description: The total number of classes that were replaced
 
 runs:
-  using: node20
+  using: node24
   main: dist/index.js
