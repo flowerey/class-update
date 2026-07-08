@@ -16,15 +16,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Install topgrade
-        run: |
-          sudo apt install curl lsb-release wget
-          curl -sL https://raw.githubusercontent.com/wimpysworld/deb-get/main/deb-get | sudo -E bash -s install deb-get
-          deb-get install topgrade
-
-      - name: Run topgrade
-        run: topgrade
-
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
