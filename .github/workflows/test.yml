@@ -1,0 +1,74 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: build the fixture
+        run: |
+          mkdir -p fixture/nested
+          cat > fixture/theme.css <<'EOF'
+          .chat-2ZfjoI { color: red; }                       /* renamed repeatedly since 2021 */
+          .aspect-ratio-16\/9__20ba8 { color: red; }          /* escaped slash */
+          .container_unknown123 { color: blue; }              /* not in the changelist */
+          .xchat-2ZfjoI, .chat-2ZfjoIy { color: green; }      /* must not match as substrings */
+          EOF
+          cat > fixture/nested/deep.css <<'EOF'
+          .messagesPopoutWrap_e8b59c { color: red; }
+          EOF
+
+      - id: update
+        uses: ./
+        with:
+          folder: fixture
+          ext: css
+
+      - name: check the results
+        run: |
+          echo "totalChanges=${{steps.update.outputs.totalChanges}}"
+          echo "changed=${{steps.update.outputs.changed}}"
+          echo '--- fixture/theme.css'; cat fixture/theme.css
+          echo '--- fixture/nested/deep.css'; cat fixture/nested/deep.css
+
+          fail() { echo "FAIL: $1"; exit 1; }
+
+          # the outputs have to actually come through, otherwise a workflow gated on
+          # them silently never commits
+          [ -n "${{steps.update.outputs.totalChanges}}" ] || fail "totalChanges is empty"
+          [ "${{steps.update.outputs.changed}}" = "true" ] || fail "changed should be true"
+          [ "${{steps.update.outputs.totalChanges}}" -ge 3 ] || fail "expected at least 3 replacements"
+
+          # stale names are gone
+          grep -q '^\.chat-2ZfjoI '            fixture/theme.css && fail "2021 class not renamed"
+          grep -q 'aspect-ratio-16\\/9__20ba8' fixture/theme.css && fail "slash class not renamed"
+          grep -q 'messagesPopoutWrap_e8b59c'  fixture/nested/deep.css && fail "nested file not updated"
+
+          # the escape survives, so the selector is still valid css
+          grep -q 'aspect-ratio-16\\/9_'       fixture/theme.css || fail "slash escape was lost"
+
+          # everything else is left alone
+          grep -q 'container_unknown123'       fixture/theme.css || fail "unknown class was touched"
+          grep -q '\.xchat-2ZfjoI'             fixture/theme.css || fail "substring match clobbered a class"
+          grep -q '\.chat-2ZfjoIy'             fixture/theme.css || fail "substring match clobbered a class"
+          grep -q 'color: blue'                fixture/theme.css || fail "declarations were mangled"
+
+          echo "all checks passed"
+
+      - name: a missing changelist has to fail the run
+        run: |
+          if node dist/index.js; then
+            echo "FAIL: a dead changelist should exit non-zero"; exit 1
+          fi
+          echo "correctly failed"
+        env:
+          INPUT_FOLDER: fixture
+          INPUT_EXT: css
+          INPUT_DIFF: https://codeberg.org/SyndiShanX/Update-Classes/raw/branch/does-not-exist/Changes.txt

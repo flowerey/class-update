@@ -1,12 +1,13 @@
 import { appendFileSync, existsSync } from "fs";
 import { readFile, readdir, writeFile } from "fs/promises";
-import { resolve, join } from "path";
+import { resolve, join, dirname } from "path";
 import { randomUUID } from "crypto";
 import { EOL } from "os";
 
 const ExitCode = { Success: 0, Failure: 1 } as const;
 
 const doDebug = isDebug();
+const __root = dirname(import.meta.dirname);
 
 const options = {
   folder: getInput("folder") || "themes",
@@ -16,7 +17,7 @@ const options = {
   })(),
   diff:
     getInput("diff") ||
-    "https://raw.githubusercontent.com/Saltssaumure/Update-Classes/main/Changes.txt",
+    "https://codeberg.org/SyndiShanX/Update-Classes/raw/branch/pages/Changes.txt",
 };
 
 const targetFolder = resolve(process.cwd(), options.folder);
@@ -27,76 +28,85 @@ if (!existsSync(targetFolder)) {
 }
 
 const pairs = await getPairs(options.diff);
-if (pairs.length === 0) {
+if (pairs.size === 0) {
   setOutput("totalChanges", 0);
   setOutput("changed", false);
   process.exit(ExitCode.Success);
 }
 
-const replacementMap = new Map<string, string>(pairs);
-const keys = Array.from(replacementMap.keys());
-
-let transform: (content: string) => { result: string; count: number };
-
-if (shouldFallback(keys)) {
-  const pattern = new RegExp(
-    `\\b(${keys
-      .map((k: string) => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-      .join("|")})\\b`,
-    "g",
-  );
-  transform = (content: string) => {
-    let count = 0;
-    const result = content.replace(pattern, (matched: string) => {
-      count++;
-      return replacementMap.get(matched)!;
-    });
-    return { result, count };
-  };
-} else {
-  transform = (content: string) => replaceWithMap(content, replacementMap);
-}
+// class names can contain letters, digits, _ and - (eg `chat-2ZfjoI`), plus / for
+// discord's typography classes (eg `text-sm/medium_a25714`). in css a / has to be
+// escaped, so `\` is matched too and stripped before looking a token up
+const tokenRegex = /[A-Za-z_][A-Za-z0-9_\-\\/]*/g;
 
 const files: string[] = await readdir(targetFolder, { recursive: true });
 const filePaths = files
   .filter((f: string) => f.endsWith(options.ext))
   .map((f: string) => join(targetFolder, f));
 
+if (doDebug) debug(`Found ${filePaths.length} files`);
+
 const results = await Promise.all(
   filePaths.map(async (fullPath: string) => {
     const content = await readFile(fullPath, "utf8");
-    const { result, count: fileCount } = transform(content);
+    let count = 0;
 
-    if (fileCount > 0) {
+    // one pass per file instead of one pass per pair, so a class that's already
+    // been replaced is never replaced again, and 79k pairs stay cheap
+    const result = content.replace(tokenRegex, (token: string) => {
+      const escaped = token.includes("\\");
+      const newClass = pairs.get(escaped ? token.replaceAll("\\", "") : token);
+      if (!newClass) return token;
+      count++;
+      return escaped ? newClass.replaceAll("/", "\\/") : newClass;
+    });
+
+    if (count > 0) {
       await writeFile(fullPath, result);
       const relativeName = fullPath.replace(targetFolder + "/", "");
-      if (doDebug) debug(`Updated ${relativeName}: ${fileCount} changes`);
-      return { relativeName, count: fileCount };
+      if (doDebug) debug(`Updated ${relativeName}: ${count} changes`);
     }
-    return { count: 0 };
+    return count;
   }),
 );
 
 const totalChanges = results.reduce(
-  (sum: number, res: { count: number }) => sum + res.count,
+  (sum: number, n: number) => sum + n,
   0,
 );
 
 setOutput("totalChanges", totalChanges);
 setOutput("changed", totalChanges > 0);
 
-async function getPairs(diffSource: string): Promise<Array<[string, string]>> {
+if (doDebug) {
+  debug(`${totalChanges} changes`);
+}
+
+async function getPairs(diffSource: string): Promise<Map<string, string>> {
   let rawData: string = "";
   try {
     if (diffSource.startsWith("http")) {
+      debug(`Fetching diff: ${diffSource}`);
       const resp = await fetch(diffSource);
       if (!resp.ok) {
-        error(`Failed to fetch diff: ${resp.status}`);
+        error(`Failed to fetch diff: ${resp.status} ${resp.url}`);
         process.exit(ExitCode.Failure);
       }
       rawData = await resp.text();
     } else {
-      rawData = await readFile(resolve(process.cwd(), diffSource), "utf8");
+      // check the workspace first, the actions own folder second (old behavior)
+      let found = false;
+      for (const path of [resolve(process.cwd(), diffSource), join(__root, diffSource)]) {
+        if (!existsSync(path)) continue;
+        debug(`Using local diff source: ${path}`);
+        rawData = await readFile(path, "utf8");
+        found = true;
+        break;
+      }
+      if (!found) {
+        error(`Invalid diff source: ${diffSource}`);
+        process.exit(ExitCode.Failure);
+      }
     }
   } catch (err) {
     error(
@@ -105,97 +115,55 @@ async function getPairs(diffSource: string): Promise<Array<[string, string]>> {
     process.exit(ExitCode.Failure);
   }
 
-  const lines = rawData
-    .split(/\r?\n/)
-    .map((l: string) => l.trim())
-    .filter(Boolean);
+  return buildPairs(rawData);
+}
 
-  const pairs: Array<[string, string]> = [];
+/**
+ * the changelist is old & new class names on alternating lines, and it's a history,
+ * so a class can get renamed more than once (a -> b, then b -> c). following each
+ * rename to a name that never gets renamed again lets a theme catch up in one pass
+ */
+function buildPairs(rawData: string): Map<string, string> {
+  const lines = rawData.split(/\r?\n/).map((l: string) => l.trim());
+
+  const final = new Map<string, string>(); // original -> current
+  const byCurrent = new Map<string, string[]>(); // current -> originals pointing at it
 
   for (let i = 0; i < lines.length; i += 2) {
-    if (lines[i] && lines[i + 1] && lines[i] !== lines[i + 1]) {
-      pairs.push([lines[i], lines[i + 1]]);
-    }
+    const oldClass = lines[i];
+    const newClass = lines[i + 1];
+    // a class name is a single token, so anything with whitespace is malformed
+    if (!oldClass || !newClass || oldClass === newClass) continue;
+    if (/\s/.test(oldClass) || /\s/.test(newClass)) continue;
+
+    const origs = byCurrent.get(oldClass) ?? [];
+    if (!final.has(oldClass)) origs.push(oldClass);
+
+    for (const orig of origs) final.set(orig, newClass);
+    byCurrent.delete(oldClass);
+
+    const existing = byCurrent.get(newClass);
+    if (existing) existing.push(...origs);
+    else byCurrent.set(newClass, origs);
   }
-  return pairs;
-}
 
-function isWord(c: string): boolean {
-  return (
-    (c >= "a" && c <= "z") ||
-    (c >= "A" && c <= "Z") ||
-    (c >= "0" && c <= "9") ||
-    c === "_"
-  );
-}
-
-function replaceWithMap(
-  text: string,
-  map: Map<string, string>,
-): { result: string; count: number } {
-  const RUN = /[A-Za-z0-9_-]+/g;
-  let out = "";
-  let last = 0;
-  let count = 0;
-  let m: RegExpExecArray | null;
-
-  while ((m = RUN.exec(text)) !== null) {
-    const runStart = m.index;
-    const runEnd = runStart + m[0].length;
-    out += text.slice(last, runStart);
-
-    let cursor = runStart;
-    while (cursor < runEnd) {
-      if (cursor === runStart || text[cursor - 1] === "-") {
-        let matchedKey: string | undefined;
-        for (let q = cursor + 1; q <= runEnd; q++) {
-          const key = text.slice(cursor, q);
-          if (map.has(key)) {
-            const bw = isWord(text[q - 1]);
-            const aw = q < text.length ? isWord(text[q]) : false;
-            if (bw !== aw) {
-              matchedKey = key;
-            }
-            break;
-          }
-        }
-        if (matchedKey !== undefined) {
-          out += map.get(matchedKey)!;
-          count++;
-          cursor += matchedKey.length;
-          continue;
-        }
-      }
-      out += text[cursor];
-      cursor++;
+  // the changelist isn't perfectly ordered, so a rename can land on a name an
+  // earlier line already renamed. one more pass settles those
+  for (const [oldClass, newClass] of final) {
+    const seen = new Set([oldClass]);
+    let current = newClass;
+    while (final.has(current) && !seen.has(current)) {
+      seen.add(current);
+      current = final.get(current)!;
     }
-    last = runEnd;
-  }
-  out += text.slice(last);
-  return { result: out, count };
-}
 
-function shouldFallback(keys: string[]): boolean {
-  for (const k of keys) {
-    if (k.charCodeAt(0) === 45) return true;
-    for (let j = 0; j < k.length; j++) {
-      const c = k.charCodeAt(j);
-      const ok =
-        (c >= 48 && c <= 57) ||
-        (c >= 65 && c <= 90) ||
-        (c >= 97 && c <= 122) ||
-        c === 45 ||
-        c === 95;
-      if (!ok) return true;
-    }
+    // a chain can lead back to where it started (a -> b -> a)
+    if (current === oldClass) final.delete(oldClass);
+    else final.set(oldClass, current);
   }
-  const sorted = [...keys].sort();
-  for (let i = 1; i < sorted.length; i++) {
-    if (sorted[i - 1].length < sorted[i].length && sorted[i].startsWith(sorted[i - 1])) {
-      return true;
-    }
-  }
-  return false;
+
+  debug(`${final.size} pairs`);
+  return final;
 }
 
 function getInput(name: string): string {

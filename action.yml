@@ -13,7 +13,7 @@ inputs:
     default: css
   diff:
     description: URL or relative path to a file containing an old & new pair of class names
-    default: https://raw.githubusercontent.com/Saltssaumure/Update-Classes/main/Changes.txt
+    default: https://codeberg.org/SyndiShanX/Update-Classes/raw/branch/pages/Changes.txt
 
 outputs:
   changed:
